@@ -1,8 +1,7 @@
-
 #from pandas import pd
 import pandas as pd
 # This code is from July 2020: Spyder version 4.1.3
-# was getting error without this line (Dec 2020)
+# Was getting an error without this line (Dec 2020)
 #pd.core.common.is_list_like = pd.api.types.is_list_like
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,8 +16,7 @@ jack = statcast_pitcher('2019-03-20', '2019-09-20', player_id=656427)
 # Some of these columns are no longer used or replaced
 # Some are empty columns, using nan
 jack.columns
-# Reference for all stat acronyms 
-# https://baseballsavant.mlb.com/csv-docs
+# Reference for all stat acronyms: https://baseballsavant.mlb.com/csv-docs
 
 # His 2019 first half stats
 jack1 = statcast_pitcher('2019-03-20', '2019-07-20', player_id=656427)
@@ -27,7 +25,6 @@ jack2 = statcast_pitcher('2019-07-20', '2019-09-20', player_id=656427)
 # His 2018 stats, could be useful
 jack2018 = statcast_pitcher('2018-03-29', '2019-09-28', player_id=656427)
 
-# TODO: Link to charts and graphs with observations
 """function to see how often he threw each pitch type in percentages"""
 def pitchPercentage(player):
     totalPitches = player['pitch_type'].value_counts()
@@ -38,7 +35,6 @@ pitchPer2018 = pitchPercentage(jack2018)
 pitchPer1 = pitchPercentage(jack1)
 pitchPer2 = pitchPercentage(jack2)
 
-# Split by 2018, 1st half 2019, 2nd half 2020
 # Fig 1
 pd.concat([pitchPer2018, pitchPer1, pitchPer2],
           keys=['2018', '1st_Half', '2nd_Half'], axis=1)
@@ -81,7 +77,27 @@ resultsInd = range(len(pitches))
 # width of bars (width), make the bars thinner so they fit
 resultsWidth = np.min(np.diff(resultsInd)) / 4.
 
-# TODO: Put numbers over each bar. However, it may not fit.
+# https://matplotlib.org/gallery/api/barchart.html
+def autolabel(rects, xpos='center'):
+    """
+    Attach a text label above each bar in *rects*, displaying its height.
+
+    *xpos* indicates which side to place the text w.r.t. the center of
+    the bar. It can be one of the following {'center', 'right', 'left'}.
+    """
+
+    ha = {'center': 'center', 'right': 'left', 'left': 'right'}
+    offset = {'center': 0, 'right': 1, 'left': -1}
+
+    for rect in rects:
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(offset[xpos] * 3, 3),  # use 3 points offset
+                    textcoords="offset points",  # in both directions
+                    ha=ha[xpos], va='bottom')
+
+# Note: autolabel does not work with floats as inputs
 # Fig 3: woba only
 # run all lines together
 fig, ax = plt.subplots()
@@ -138,27 +154,6 @@ jack2mph = jack2mph.round(1)
 jack2018mph = jack2018.groupby('pitch_type').mean()['release_speed']
 jack2018mph = jack2018mph.round(1)
 
-# Found this online, needed to show the mph over the bars
-# https://matplotlib.org/gallery/api/barchart.html
-def autolabel(rects, xpos='center'):
-    """
-    Attach a text label above each bar in *rects*, displaying its height.
-
-    *xpos* indicates which side to place the text w.r.t. the center of
-    the bar. It can be one of the following {'center', 'right', 'left'}.
-    """
-
-    ha = {'center': 'center', 'right': 'left', 'left': 'right'}
-    offset = {'center': 0, 'right': 1, 'left': -1}
-
-    for rect in rects:
-        height = rect.get_height()
-        ax.annotate('{}'.format(height),
-                    xy=(rect.get_x() + rect.get_width() / 2, height),
-                    xytext=(offset[xpos] * 3, 3),  # use 3 points offset
-                    textcoords="offset points",  # in both directions
-                    ha=ha[xpos], va='bottom')
-
 ind = range(len(jack1mph))
 width = np.min(np.diff(ind)) / 4.
 
@@ -210,7 +205,7 @@ slot2 = jack2.groupby('pitch_type').agg(
     releasePoint=('release_pos_y', 'mean'),
     releaseExt=('release_extension', 'mean'))
 
-# this shows differences, but difficult to understand what the numbers mean
+# Difficult to understand what the numbers mean
 slot2 - slot1
 
 """"Scatter plot of his arm slots. Looking at numbers is impossible to
@@ -248,7 +243,6 @@ ax.add_artist(second)
 ax.set_xlim(-3, 0)
 ax.set_ylim(5, 6)
 
-# create multiple ellipses using a function
 def makeEllipses(list):
     for a in list:
         ax.add_artist(a)
@@ -297,7 +291,6 @@ ax.set_ylabel("Inches from home plate")
 ax.set_title("Release Point of Flaherty's Pitches\
              \n(From catcher's view)")
 
-# 3d scatter plot of pitches
 # distance from home plate is their y-axis, release_point_y
 yAxis2018 = jack2018.groupby('pitch_type')['release_pos_y']
 yAxis1st = jack1.groupby('pitch_type')['release_pos_y']
@@ -325,7 +318,7 @@ ax.set_zlabel("Feet off the ground")
 ax.set_title("Release Point of Flaherty's Pitches\
              \n(From catcher's view)")
 
-# TODO: use counter or heat maps to show movement and pitch locations
+# TODO: create counter or heat maps to show movement and pitch locations
 # Looking at movement of his pitches
 move1st = jack1.groupby('pitch_type').agg(
     xMove=('pfx_x', 'mean'),
@@ -429,22 +422,17 @@ ax.set_title("Movement from catcher's view")
 # Looking at his batted ball percentages
 """This function coverts batted ball types from counting sum to percentages. 
 Baseball Savant/pyBaseball gives all pitches thrown with their batted ball 
-results (if the ball was put in play). Divided each sum of batted ball type
-by the sum of all batted balls, multiplied by 100."""
+results (if the ball was put in play)."""
 
 def battedBallsProfile(player):
     battedballs = player['launch_speed_angle'].value_counts()
     per = (battedballs / battedballs.sum()) * 100
     return round(per, 1)
 
+hitType1 = battedBallsProfile(jack1)
+hitType2 = battedBallsProfile(jack2)
 
-hitType1 = battedBallsProfile(jack1)  # 1st half 2019
-hitType2 = battedBallsProfile(jack2)  # 2nd half 2019
-
-# does not work
-hitType1.rename(columns={'launch_speed_angle': 'battedBalls'},
-                inplace=True)
-
+#Below are charts
 hitType1.rename(index={1: 'Weak', 2: 'Topped', 3: 'Under',
                        4: 'Flare/Burner', 5: 'Solid Contact',
                        6: 'Barrel'}, inplace=True)
@@ -464,15 +452,6 @@ pd.merge(hitType2018, hitType2, how='outer', left_index=True,
 pd.concat([hitType2018, hitType1, hitType2],
           keys=['2018', '1st_Half', '2nd_Half'], axis=1)
 
-"""He gave up much less hard contact from 2018/1st half 2019 compared to 
-2nd half 2019. He cut down on barrel% and solid contact, and had more weak
-contact. 'Under' stayed the same and 'topped' fluctated. 'Flare/burner' did
-get worse, but does not offset the improvements in other areas."""
-
-"""I had difficulty deciding what type of graph would clearly 
-show what the differences in numbers mean."""
-
-# Made two different pie graphs
 # Defined what each batted ball means, easier for everyday fan to understand
 """Need two arrays. Pie graphs are organized by decreasing %,
 which messes up the labeling on the graphs"""
@@ -483,27 +462,7 @@ hitTypeLabels2nd = ['Topped (Ground Ball)', 'Under (Pop Up)',
                     'Flare/Burner (Bloop Hit)', 'Weak (Poorly Hit)',
                     'Barrel (Hard Hit)', 'Solid Contact (Line Drive)']
 
-# This pie graph works but very ugly
-# no legend, cannot make graphs left to right. Only vertical
-"""Without the ax.axis lines, everything is cluttered. Not sure why '2018
-is all the way to the left. Without ax2018.axis('equal'), everything is 
-cluttered too."""
-fig, ax = plt.subplots(3)
-fig.set_size_inches(8, 8)
-ax2018 = ax[0]
-ax1 = ax[1]
-ax2 = ax[2]
-ax2018.pie(hitType2018, labels=hitTypeLabels, autopct='%.0f%%', radius=1.3)
-ax2018.set_title('2018', loc='left')
-ax2018.axis('equal')
-ax1.pie(hitType1, labels=hitTypeLabels, autopct='%1.1f%%', radius=1.3)
-ax1.set_title('2019 1st Half')
-ax1.axis('equal')
-ax2.pie(hitType2, labels=hitTypeLabels2nd, autopct='%1.1f%%', radius=1.3)
-ax2.set_title('2019 2nd Half')
-ax2.axis('equal')
-
-# Much cleaner. Pies are horizontal and contains legend
+# Pie graph
 fig, axarr = plt.subplots(1, 3)
 fig.set_size_inches(8, 7)
 ax0 = axarr[0]
@@ -529,9 +488,6 @@ fig.suptitle("Flaherty's Batted Balls%", fontweight='bold', y=.9)
 fig.subplots_adjust(top=1.0, bottom=0.05, left=0.0, right=1.0, hspace=0.205,
                     wspace=0.068)
 
-# bar graphs would probably be the best graph for this data
-# trying something different with this bar graph, overlapping them
-
 # x_label
 hitTypeLabelsBars = ['Topped \n(Ground Ball) \n Higher=Better',
                      'Under \n(Pop Up) \n Higher=Better',
@@ -540,10 +496,6 @@ hitTypeLabelsBars = ['Topped \n(Ground Ball) \n Higher=Better',
                      'Solid Contact \n(Line Drive) \n Lower= Better',
                      'Weak \n(Poorly Hit) \n Higher=Better']
 
-# set the total bars, this is the first parameter
-"""this is never used. I can use hitTypeLabelsBars above and it will 
-count how many bars are to be made"""
-bbBars = range(len(hitType1))
 widthBars = 0.8
 
 # run all these lines together
